@@ -1,0 +1,34 @@
+RINGKASAN PENGUJIAN ECODROP
+
+1. PENGUJIAN BLACK-BOX
+   Skenario: 18, berhasil: 18, gagal: 0  (rincian: hasil_blackbox.csv)
+
+2. PENGUJIAN AKURASI JARAK
+   Acuan: jarak geodesik elipsoid WGS84 (pyproj Geod, metode Karney)
+   Titik pengguna acak di daratan Jakarta: 1000 titik (seed 42)
+   Pasangan yang dibandingkan (5 lokasi terdekat x 4 jenis lokasi x 1000 titik): 20,000
+   Rata-rata jarak acuan           : 2.888 km
+   Rata-rata selisih absolut (MAE) : 7.43 m
+   Selisih absolut maksimum        : 80.44 m
+   Rata-rata selisih relatif (MAPE): 0.259 %
+   Rentang selisih relatif         : -0.116 % s.d. 0.550 %
+   Akurasi jarak (100% - MAPE)     : 99.741 %
+
+   Kecocokan urutan rekomendasi Haversine vs geodesik:
+   - lokasi terdekat pertama sama : 99.92 %
+   - 5 lokasi terdekat sama       : 98.65 %
+   - 5 lokasi dengan urutan sama  : 96.35 %
+   Bila lokasi pertama berbeda (3 dari 4,000 kasus), lokasi pilihan Haversine hanya lebih jauh maksimum 23.94 m dari lokasi terdekat sebenarnya.
+
+   Per jenis lokasi (%):
+                     top1_sama  top5_anggota_sama  top5_urutan_sama
+jenis_lokasi                                                       
+bank_sampah              100.0               98.6              96.8
+collection_point_b3      100.0               98.8              96.6
+dropbox_ewaste            99.7               98.7              95.8
+tps                      100.0               98.5              96.2
+
+3. PENGUJIAN KECEPATAN
+   Modul rekomendasi (numpy) (n=1000): rata-rata 0.082 ms, median 0.101 ms, p95 0.141 ms, maks 0.510 ms
+   Endpoint API lengkap (FastAPI, in-process) (n=300): rata-rata 2.929 ms, median 2.958 ms, p95 3.539 ms, maks 5.130 ms
+   Pembanding: perulangan Python ke 3.127 lokasi (n=100): rata-rata 2.602 ms, median 2.227 ms, p95 4.600 ms, maks 5.649 ms
