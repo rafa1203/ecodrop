@@ -1,0 +1,19 @@
+﻿kode,fitur,skenario,hasil_diharapkan,hasil_aktual,kesimpulan
+BB-01,Rekomendasi anorganik,"Label plastic, confidence 0,92, lokasi Jakarta Pusat","HTTP 200, status ok, 5 lokasi bank sampah urut dari yang terdekat","HTTP 200; status ok; 5 lokasi; jenis bank_sampah; jarak 0.19-0.36 km, urut",Berhasil
+BB-02,Rekomendasi anorganik,Label white-glass (kaca bening),"HTTP 200, status ok, semua lokasi bank sampah","HTTP 200; status ok; jenis bank_sampah; jarak 0.19-0.36 km, urut",Berhasil
+BB-03,Rekomendasi B3,"Label battery, confidence 0,88","HTTP 200, status ok, lokasi berupa dropbox e-waste atau collection point B3","HTTP 200; status ok; jenis collection_point_b3, dropbox_ewaste; jarak 1.01-1.55 km, urut",Berhasil
+BB-04,Rekomendasi residu,"Label trash, confidence 0,81","HTTP 200, status ok, semua lokasi TPS","HTTP 200; status ok; jenis tps; jarak 0.07-0.42 km, urut",Berhasil
+BB-05,Sampah tanpa lokasi,Label biological (organik),"HTTP 200, status tanpa_lokasi, daftar lokasi kosong, ada pesan arahan",HTTP 200; status tanpa_lokasi; 0 lokasi,Berhasil
+BB-06,Sampah tanpa lokasi,Label clothes (pakaian),"HTTP 200, status tanpa_lokasi",HTTP 200; status tanpa_lokasi; 0 lokasi,Berhasil
+BB-07,Ambang confidence,"Label paper, confidence 0,45 (di bawah ambang 0,6)","HTTP 200, status perlu_konfirmasi, belum ada lokasi",HTTP 200; status perlu_konfirmasi; 0 lokasi,Berhasil
+BB-08,Ambang confidence,"Label paper, confidence 0,45, pengguna sudah mengonfirmasi","HTTP 200, status ok, lokasi bank sampah tampil","HTTP 200; status ok; jenis bank_sampah; jarak 0.19-0.36 km, urut",Berhasil
+BB-09,Jumlah hasil,Label metal dengan top_k = 3,"HTTP 200, tepat 3 lokasi","HTTP 200; status ok; 3 lokasi; jarak 0.19-0.3 km, urut",Berhasil
+BB-10,Radius pencarian,"Label battery dengan radius 0,5 km","HTTP 200, semua lokasi (bila ada) berjarak <= 0,5 km; bila tidak ada, status tidak_ditemukan",HTTP 200; status tidak_ditemukan,Berhasil
+BB-11,Validasi masukan,Label tidak dikenal ('kayu'),HTTP 422 dengan pesan label tidak dikenal,HTTP 422,Berhasil
+BB-12,Validasi masukan,Latitude di luar rentang (-95),HTTP 422,HTTP 422,Berhasil
+BB-13,Validasi masukan,"Confidence lebih dari 1 (1,5)",HTTP 422,HTTP 422,Berhasil
+BB-14,Validasi masukan,Field latitude tidak dikirim,HTTP 422,HTTP 422,Berhasil
+BB-15,Lokasi di luar Jakarta,"Pengguna di Kota Bogor (-6.5950, 106.8167), label plastic","HTTP 200, status ok, ada peringatan di luar cakupan EcoDrop",HTTP 200; status ok; ada peringatan,Berhasil
+BB-16,Pencarian manual,"GET lokasi-terdekat jenis tps, top_k 5","HTTP 200, 5 TPS urut dari yang terdekat","HTTP 200; 5 lokasi; jenis tps; jarak 0.07-0.42 km, urut",Berhasil
+BB-17,Pencarian manual,GET lokasi-terdekat dengan jenis tidak valid ('pasar'),HTTP 422,HTTP 422,Berhasil
+BB-18,Daftar label,GET /ecodrop/label,"HTTP 200, 12 label sesuai kelas dataset Garbage Classification",HTTP 200; 12 label,Berhasil
