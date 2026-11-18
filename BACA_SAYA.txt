@@ -1,0 +1,136 @@
+MODUL HAVERSINE DAN API ECODROP
+===============================
+
+Isi folder
+----------
+ecodrop/haversine.py       Rumus Haversine (versi biasa dan versi vektor numpy)
+ecodrop/rekomendasi.py     Logika rekomendasi: label -> jenis lokasi -> lokasi terdekat
+ecodrop/api.py             Endpoint FastAPI (bisa berdiri sendiri atau dipasang di aplikasi lain)
+app.py                     Antarmuka Streamlit (memakai MesinRekomendasi langsung, tanpa HTTP)
+.streamlit/config.toml     Tema warna antarmuka Streamlit
+data/lokasi_ecodrop.csv   3.127 lokasi di lima kota administrasi DKI Jakarta
+                           (bank sampah, dropbox e-waste, collection point B3, TPS)
+data/aturan_label.csv      Pemetaan 12 label jenis sampah ke jenis lokasi
+tests/                     Pengujian otomatis (pytest)
+pengujian/                 Script pengujian untuk laporan dan hasilnya (folder hasil)
+
+Pemetaan label
+--------------
+Label mengikuti 12 kelas dataset publik Garbage Classification (Mohamed, 2021), sehingga dapat berasal
+dari model klasifikasi citra apa pun yang dilatih dengan kelas tersebut, atau dipilih langsung oleh pengguna.
+cardboard, paper, metal, plastic, brown-glass, green-glass, white-glass  -> bank sampah
+battery                                                                  -> dropbox e-waste dan collection point B3
+trash                                                                    -> TPS
+biological, clothes, shoes   -> tanpa lokasi (diarahkan ke pengolahan di rumah, pakai ulang, atau donasi)
+Ambang confidence 0,6: di bawah itu sistem meminta pengguna mengonfirmasi jenis sampah lebih dulu.
+Aturan bisa diubah lewat data/aturan_label.csv tanpa menyentuh kode.
+
+Menjalankan
+-----------
+Semua perintah dijalankan dari folder ini (folder yang berisi requirements.txt).
+pip install -r requirements.txt
+
+API:
+    uvicorn ecodrop.api:app --reload
+    Buka http://127.0.0.1:8000/docs untuk mencoba semua endpoint.
+
+Antarmuka Streamlit:
+    streamlit run app.py
+    Buka http://localhost:8501. Tombol "Gunakan lokasi saya" butuh HTTPS; di laptop, localhost
+    sudah dianggap aman. Bila dibuka dari ponsel lewat alamat IP laptop (http://192.168.x.x:8501),
+    GPS tidak berjalan; pakai klik titik di peta atau isian koordinat, atau uji lewat versi
+    Streamlit Community Cloud (HTTPS).
+
+Publikasi ke Streamlit Community Cloud
+--------------------------------------
+1. Unggah isi folder ini ke repositori GitHub (requirements.txt dan app.py di akar repositori).
+   Folder dokumen/ tidak dibutuhkan aplikasi; keluarkan dari repositori bila repositorinya publik.
+2. Di https://share.streamlit.io pilih Create app, pilih repositori dan cabangnya,
+   lalu isi Main file path: app.py.
+3. Setelah aplikasi berjalan, buka alamat https://<nama-aplikasi>.streamlit.app di iPhone (Safari)
+   dan izinkan akses lokasi saat diminta.
+
+Memasang di aplikasi lain berbasis FastAPI
+------------------------------------------
+1. Salin folder ecodrop/ dan data/ ke proyek tersebut.
+2. Di file utama backend:
+       from ecodrop.api import router as ecodrop_router
+       app.include_router(ecodrop_router)
+3. Endpoint EcoDrop otomatis tersedia di bawah /ecodrop.
+
+Endpoint
+--------
+GET  /ecodrop/kesehatan        Cek layanan dan jumlah data
+GET  /ecodrop/label            Daftar 12 label dan jenis lokasi tujuannya
+POST /ecodrop/rekomendasi      Rekomendasi dari hasil klasifikasi
+GET  /ecodrop/lokasi-terdekat  Cari langsung per jenis lokasi, mis.
+                               ?latitude=-6.2088&longitude=106.8456&jenis_lokasi=bank_sampah&top_k=5
+
+Contoh request POST /ecodrop/rekomendasi
+    {
+      "label": "trash",
+      "confidence": 0.81,
+      "latitude": -6.2088,
+      "longitude": 106.8456,
+      "top_k": 5,
+      "radius_km": null,
+      "dikonfirmasi": false
+    }
+
+Contoh response (dipotong)
+    {
+      "label": "trash",
+      "nama_indonesia": "Residu",
+      "kelompok": "residu",
+      "confidence": 0.81,
+      "jenis_lokasi": ["tps"],
+      "status": "ok",
+      "pesan": "Residu yang tidak bisa dimanfaatkan dibuang ke TPS terdekat.",
+      "peringatan": null,
+      "lokasi": [
+        {
+          "urutan": 1, "id": "TPS0318", "nama": "TPS rw01 Menteng tenggulun",
+          "jenis_lokasi": "tps", "jenis_lokasi_nama": "TPS",
+          "jarak_km": 0.07, "jarak_m": 68,
+          "latitude": -6.208197, "longitude": 106.845695,
+          "kecamatan": "Menteng", "kota": "Jakarta Pusat",
+          "keterangan": "TIPE 3; kapasitas: Idle capacity",
+          "url_rute": "https://www.google.com/maps/dir/?api=1&origin=...&destination=..."
+        }
+      ]
+    }
+
+Nilai status
+    ok                 lokasi ditemukan
+    perlu_konfirmasi   confidence < 0,6; tampilkan pilihan jenis sampah, lalu kirim ulang dengan dikonfirmasi = true
+    tanpa_lokasi       jenis sampah ini tidak disetor ke lokasi (organik, pakaian, sepatu)
+    tidak_ditemukan    tidak ada lokasi dalam radius_km yang diminta
+Masukan yang tidak valid (label tidak dikenal, koordinat di luar rentang, confidence > 1) dijawab HTTP 422.
+
+Alur di antarmuka pengguna
+--------------------------
+1. Pengguna memilih jenis sampah, atau label diperoleh dari model klasifikasi citra (label + confidence).
+2. Antarmuka mengambil lokasi GPS pengguna dari browser, atau pengguna menentukannya di peta.
+3. Antarmuka memanggil POST /ecodrop/rekomendasi dengan label, confidence, latitude, longitude.
+4. Hasil ditampilkan sebagai daftar dan peta; tombol "Rute" membuka url_rute.
+
+Pengujian
+---------
+pytest -q                              24 uji otomatis (6 uji unit Haversine + 18 skenario black-box)
+python pengujian/jalankan_pengujian.py  menghasilkan file di pengujian/hasil:
+    hasil_blackbox.csv             tabel skenario, hasil diharapkan, hasil aktual, kesimpulan
+    ringkasan_pengujian.txt        ringkasan black-box, akurasi jarak, dan kecepatan
+    grafik_akurasi_haversine.png   sebaran selisih jarak dan pengaruh arah
+    akurasi_pasangan_jarak.csv     20.000 pasangan jarak Haversine vs geodesik
+
+Hasil (17 November 2026):
+- Black-box: 18 dari 18 skenario berhasil.
+- Akurasi jarak terhadap geodesik WGS84: MAE 7,43 m, MAPE 0,259%, selisih -0,12% s.d. +0,55%.
+  Selisih bergantung arah: terbesar untuk arah utara-selatan karena Haversine menganggap Bumi bulat.
+- Lokasi terdekat pertama sama dengan acuan geodesik pada 99,92% kasus; bila berbeda,
+  lokasi pilihan Haversine paling jauh hanya 23,94 m lebih jauh.
+- Waktu proses modul kurang dari 0,1 ms per permintaan; lewat endpoint API sekitar 3 ms.
+
+Memperbarui data lokasi
+-----------------------
+Jalankan ulang script di paket EcoDrop_Data_Lokasi, lalu salin hasil_gabungan/lokasi_ecodrop.csv ke data/.
