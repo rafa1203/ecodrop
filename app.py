@@ -85,6 +85,24 @@ def nama_jenis_lokasi(daftar_jenis):
     return " / ".join(NAMA_JENIS[j] for j in daftar_jenis)
 
 
+def url_titik(lok):
+    """Tautan Google Maps yang menaruh pin tepat di koordinat lokasi.
+
+    Tautan rute dari modul (url_rute) membuat Google Maps menamai tujuan dengan tempat terdaftar
+    terdekat, misalnya kantor RW atau warung, karena bank sampah unit jarang terdaftar di Google Maps.
+    Dengan pin koordinat, pengguna melihat titik yang benar lalu bisa menekan "Rute" di Google Maps.
+    """
+    return f"https://www.google.com/maps/search/?api=1&query={lok['latitude']}%2C{lok['longitude']}"
+
+
+def bank_sampah_unit(lok):
+    return lok["jenis_lokasi"] == "bank_sampah" and "unit" in str(lok["keterangan"]).lower()
+
+
+CATATAN_BSU = ("Bank sampah unit biasanya ada di rumah pengurus atau fasilitas RW dan buka di hari tertentu. "
+               "Tanyakan ke warga sekitar RT/RW yang tertera.")
+
+
 # ----------------------------------------------------------------------------- state & callback
 def siapkan_state():
     ss = st.session_state
@@ -157,8 +175,8 @@ def peta_hasil(pos, lokasi, radius_km):
     for lok in reversed(lokasi):  # urutan 1 digambar paling akhir agar berada di atas
         nama = html.escape(lok["nama"])
         popup = (f"<b>{lok['urutan']}. {nama}</b><br>{html.escape(lok['jenis_lokasi_nama'])} · "
-                 f"{format_jarak(lok)}<br><a href=\"{html.escape(lok['url_rute'])}\" target=\"_blank\" "
-                 "rel=\"noopener\">Rute di Google Maps</a>")
+                 f"{format_jarak(lok)}<br><a href=\"{html.escape(url_titik(lok))}\" target=\"_blank\" "
+                 "rel=\"noopener\">Buka titik di Google Maps</a>")
         folium.Marker((lok["latitude"], lok["longitude"]),
                       icon=ikon_nomor(lok["urutan"], WARNA_PETA[lok["jenis_lokasi"]]),
                       tooltip=f"{lok['urutan']}. {nama}",
@@ -266,8 +284,11 @@ def kartu_lokasi(lok):
             f":material/schedule: {jam}",
             f":material/info: {md(lok['keterangan'])}",
         ]
+        if bank_sampah_unit(lok):
+            baris.append(f":material/groups: {CATATAN_BSU}")
         st.markdown("  \n".join(baris))
-        st.link_button("Rute di Google Maps", lok["url_rute"], icon=":material/directions:", width="stretch")
+        st.link_button("Buka titik di Google Maps", url_titik(lok), icon=":material/location_on:", width="stretch")
+        st.caption("Di Google Maps, tekan **Rute** untuk petunjuk arah.")
 
 
 def tampilkan_hasil(hasil, pos, radius_km):
