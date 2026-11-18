@@ -1,0 +1,13 @@
+label,nama_indonesia,kelompok,jenis_lokasi,pesan
+cardboard,Kardus,anorganik_bernilai_jual,bank_sampah,Kardus bisa dijual ke bank sampah terdekat.
+paper,Kertas,anorganik_bernilai_jual,bank_sampah,Kertas bisa dijual ke bank sampah terdekat.
+metal,Logam dan kaleng,anorganik_bernilai_jual,bank_sampah,Logam dan kaleng bisa dijual ke bank sampah terdekat.
+plastic,Plastik,anorganik_bernilai_jual,bank_sampah,Plastik bisa dijual ke bank sampah terdekat.
+brown-glass,Kaca cokelat,anorganik_bernilai_jual,bank_sampah,Kaca bisa dijual ke bank sampah terdekat.
+green-glass,Kaca hijau,anorganik_bernilai_jual,bank_sampah,Kaca bisa dijual ke bank sampah terdekat.
+white-glass,Kaca bening,anorganik_bernilai_jual,bank_sampah,Kaca bisa dijual ke bank sampah terdekat.
+battery,Baterai,b3_elektronik,dropbox_ewaste;collection_point_b3,Baterai termasuk sampah B3. Setorkan ke dropbox e-waste atau collection point B3 terdekat.
+trash,Residu,residu,tps,Residu yang tidak bisa dimanfaatkan dibuang ke TPS terdekat.
+biological,Sampah organik,organik,,"Sampah organik sebaiknya diolah di rumah, misalnya dengan kompos, maggot BSF, atau biodigester."
+clothes,Pakaian,tekstil,,Pakaian yang masih layak sebaiknya dipakai ulang atau didonasikan.
+shoes,Sepatu,tekstil,,Sepatu yang masih layak sebaiknya dipakai ulang atau didonasikan.
