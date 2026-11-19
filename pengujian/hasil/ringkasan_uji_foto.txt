@@ -1,44 +1,44 @@
 Pengujian pengenalan foto EcoDrop (OpenCLIP ViT-B-32-quickgelu, bobot vit_b_32-quickgelu-laion400m_e32-46683a32.pt (LAION-400M))
 Ambang confidence 0.6. Angka utama dari bagian uji (2497 foto).
 
-TrashNet (tingkat bahan, n=1766): top-1 64.6%, top-3 87.8%, tujuan benar 75.9%, di atas ambang 61.9% (top-1 72.3%)
-TrashIVL (tingkat jenis, n=383): top-1 70.0%, top-3 87.7%, tujuan benar 85.1%, di atas ambang 80.2% (top-1 79.5%)
-E-Waste Vision (tingkat jenis, n=348): top-1 85.6%, top-3 94.8%, tujuan benar 96.3%, di atas ambang 90.5% (top-1 92.4%)
-Gabungan uji: top-1 68.3%, top-3 88.7%, tujuan benar 80.2%
+TrashNet (tingkat bahan, n=1766): top-1 64.6%, top-3 86.5%, tujuan benar 75.8%, di atas ambang 62.6% (top-1 72.7%)
+TrashIVL (tingkat jenis, n=383): top-1 71.0%, top-3 86.7%, tujuan benar 85.1%, di atas ambang 77.8% (top-1 80.5%)
+E-Waste Vision (tingkat jenis, n=348): top-1 86.8%, top-3 95.7%, tujuan benar 96.8%, di atas ambang 89.7% (top-1 92.0%)
+Gabungan uji: top-1 68.6%, top-3 87.8%, tujuan benar 80.1%
 
 Akurasi per label (bagian uji):
-  TrashNet / cardboard: n=276, top-1 84%, top-3 95%; salah terbanyak: RS06 Bungkus saset dan kemasan berlapis aluminium (8), AN11 Plastik kemasan lain (7), AN10 Kantong plastik (kresek) (4)
-  TrashNet / glass: n=335, top-1 59%, top-3 85%; salah terbanyak: AN11 Plastik kemasan lain (31), AN08 Botol sampo, sabun, dan deterjen (14), AN05 Botol plastik minuman (PET) (13)
-  TrashNet / metal: n=290, top-1 35%, top-3 75%; salah terbanyak: RS06 Bungkus saset dan kemasan berlapis aluminium (75), B303 Kaleng cat, thinner, dan lem (29), AN18 Kotak minuman karton (12)
-  TrashNet / paper: n=424, top-1 73%, top-3 92%; salah terbanyak: RS04 Tisu dan kertas kotor (33), RS06 Bungkus saset dan kemasan berlapis aluminium (24), AN11 Plastik kemasan lain (9)
-  TrashNet / plastic: n=348, top-1 71%, top-3 91%; salah terbanyak: AN17 Toples dan wadah kaca (18), AN18 Kotak minuman karton (14), RS06 Bungkus saset dan kemasan berlapis aluminium (14)
-  TrashNet / trash: n=93, top-1 56%, top-3 84%; salah terbanyak: AN18 Kotak minuman karton (9), AN02 Kertas, buku, dan buku tulis (5), AN04 Kertas karton dan duplex (5)
+  TrashNet / cardboard: n=276, top-1 83%, top-3 95%; salah terbanyak: RS06 Bungkus saset dan kemasan berlapis aluminium (10), LN04 Furnitur dan kasur bekas (7), AN11 Plastik kemasan lain (6)
+  TrashNet / glass: n=335, top-1 59%, top-3 83%; salah terbanyak: AN11 Plastik kemasan lain (27), AN08 Botol sampo, sabun, dan deterjen (19), AN05 Botol plastik minuman (PET) (15)
+  TrashNet / metal: n=290, top-1 35%, top-3 71%; salah terbanyak: RS06 Bungkus saset dan kemasan berlapis aluminium (74), B303 Kaleng cat, thinner, dan lem (31), AN18 Kotak minuman karton (14)
+  TrashNet / paper: n=424, top-1 73%, top-3 91%; salah terbanyak: RS06 Bungkus saset dan kemasan berlapis aluminium (28), RS04 Tisu dan kertas kotor (27), AN11 Plastik kemasan lain (11)
+  TrashNet / plastic: n=348, top-1 72%, top-3 91%; salah terbanyak: AN17 Toples dan wadah kaca (18), AN18 Kotak minuman karton (13), RS06 Bungkus saset dan kemasan berlapis aluminium (13)
+  TrashNet / trash: n=93, top-1 60%, top-3 86%; salah terbanyak: AN02 Kertas, buku, dan buku tulis (6), AN18 Kotak minuman karton (5), AN11 Plastik kemasan lain (5)
   TrashIVL / Clothes/pants: n=37, top-1 100%, top-3 100%; salah terbanyak: -
-  TrashIVL / Clothes/skirt: n=35, top-1 80%, top-3 100%; salah terbanyak: LN04 Furnitur dan kasur bekas (5), RS02 Pembalut (2)
+  TrashIVL / Clothes/skirt: n=35, top-1 83%, top-3 100%; salah terbanyak: LN04 Furnitur dan kasur bekas (4), RS02 Pembalut (2)
   TrashIVL / Clothes/upper garment: n=35, top-1 97%, top-3 100%; salah terbanyak: LN04 Furnitur dan kasur bekas (1)
-  TrashIVL / Glass/glass bottle: n=35, top-1 46%, top-3 74%; salah terbanyak: AN17 Toples dan wadah kaca (12), AN06 Gelas plastik minuman (2), LN02 Obat kedaluwarsa (1)
-  TrashIVL / Metal/can: n=29, top-1 59%, top-3 76%; salah terbanyak: B303 Kaleng cat, thinner, dan lem (4), RS06 Bungkus saset dan kemasan berlapis aluminium (2), B306 Pengharum ruangan dan kaleng aerosol (1)
+  TrashIVL / Glass/glass bottle: n=35, top-1 40%, top-3 71%; salah terbanyak: AN17 Toples dan wadah kaca (12), AN06 Gelas plastik minuman (2), B306 Pengharum ruangan dan kaleng aerosol (2)
+  TrashIVL / Metal/can: n=29, top-1 59%, top-3 79%; salah terbanyak: B303 Kaleng cat, thinner, dan lem (3), RS04 Tisu dan kertas kotor (1), B306 Pengharum ruangan dan kaleng aerosol (1)
   TrashIVL / Paper/cardboard: n=32, top-1 69%, top-3 88%; salah terbanyak: AN14 Besi dan logam bekas (2), EB03 Kulkas, mesin cuci, dan AC (1), LN03 Puing bangunan (1)
-  TrashIVL / Paper/carton: n=35, top-1 51%, top-3 83%; salah terbanyak: B306 Pengharum ruangan dan kaleng aerosol (3), RS06 Bungkus saset dan kemasan berlapis aluminium (3), AN11 Plastik kemasan lain (2)
-  TrashIVL / Paper/newspaper: n=39, top-1 82%, top-3 92%; salah terbanyak: AN02 Kertas, buku, dan buku tulis (3), OR04 Ampas kopi dan teh (1), LN04 Furnitur dan kasur bekas (1)
-  TrashIVL / Plastic/plastic bag: n=33, top-1 55%, top-3 85%; salah terbanyak: AN11 Plastik kemasan lain (5), RS09 Pecahan keramik dan cermin (4), RS06 Bungkus saset dan kemasan berlapis aluminium (2)
-  TrashIVL / Plastic/plastic basin: n=34, top-1 91%, top-3 100%; salah terbanyak: RS02 Pembalut (1), RS07 Sedotan dan alat makan plastik sekali pakai (1), AN11 Plastik kemasan lain (1)
-  TrashIVL / Plastic/plastic bottle: n=39, top-1 38%, top-3 67%; salah terbanyak: AN11 Plastik kemasan lain (10), B304 Pembasmi serangga (3), AN17 Toples dan wadah kaca (2)
+  TrashIVL / Paper/carton: n=35, top-1 57%, top-3 80%; salah terbanyak: B306 Pengharum ruangan dan kaleng aerosol (3), AN11 Plastik kemasan lain (2), AN03 Koran dan majalah (2)
+  TrashIVL / Paper/newspaper: n=39, top-1 85%, top-3 92%; salah terbanyak: OR04 Ampas kopi dan teh (1), LN04 Furnitur dan kasur bekas (1), LN02 Obat kedaluwarsa (1)
+  TrashIVL / Plastic/plastic bag: n=33, top-1 64%, top-3 88%; salah terbanyak: RS06 Bungkus saset dan kemasan berlapis aluminium (2), RS09 Pecahan keramik dan cermin (2), RS03 Masker sekali pakai (2)
+  TrashIVL / Plastic/plastic basin: n=34, top-1 88%, top-3 97%; salah terbanyak: RS02 Pembalut (1), RS07 Sedotan dan alat makan plastik sekali pakai (1), AN13 Kaleng makanan dan susu (1)
+  TrashIVL / Plastic/plastic bottle: n=39, top-1 38%, top-3 59%; salah terbanyak: AN11 Plastik kemasan lain (9), B304 Pembasmi serangga (3), AN17 Toples dan wadah kaca (2)
   E-Waste Vision / Keyboards: n=44, top-1 100%, top-3 100%; salah terbanyak: -
-  E-Waste Vision / Mobile: n=48, top-1 79%, top-3 96%; salah terbanyak: EK05 Baterai kecil (5), RS09 Pecahan keramik dan cermin (4), EK06 Power bank (1)
-  E-Waste Vision / Mouses: n=48, top-1 96%, top-3 96%; salah terbanyak: AN18 Kotak minuman karton (1), B309 Oli bekas (1)
+  E-Waste Vision / Mobile: n=48, top-1 85%, top-3 96%; salah terbanyak: RS09 Pecahan keramik dan cermin (3), EK05 Baterai kecil (3), B309 Oli bekas (1)
+  E-Waste Vision / Mouses: n=48, top-1 94%, top-3 96%; salah terbanyak: AN18 Kotak minuman karton (1), B309 Oli bekas (1), EB02 Laptop dan komputer (1)
   E-Waste Vision / TV: n=45, top-1 84%, top-3 96%; salah terbanyak: RS09 Pecahan keramik dan cermin (2), EK07 Perangkat elektronik kecil lain (1), B301 Lampu (1)
-  E-Waste Vision / camera: n=38, top-1 87%, top-3 92%; salah terbanyak: EK04 Earphone dan headset (1), EK05 Baterai kecil (1), B309 Oli bekas (1)
-  E-Waste Vision / laptop: n=40, top-1 50%, top-3 82%; salah terbanyak: EB01 Televisi dan monitor (7), EK01 Telepon genggam dan tablet (6), B307 Cartridge tinta dan toner (4)
-  E-Waste Vision / microwave: n=41, top-1 85%, top-3 95%; salah terbanyak: EB02 Laptop dan komputer (3), AN04 Kertas karton dan duplex (1), RS09 Pecahan keramik dan cermin (1)
+  E-Waste Vision / camera: n=38, top-1 89%, top-3 92%; salah terbanyak: EK04 Earphone dan headset (1), B309 Oli bekas (1), EB04 Peralatan listrik rumah tangga (1)
+  E-Waste Vision / laptop: n=40, top-1 50%, top-3 88%; salah terbanyak: EK01 Telepon genggam dan tablet (9), EB01 Televisi dan monitor (6), B307 Cartridge tinta dan toner (3)
+  E-Waste Vision / microwave: n=41, top-1 88%, top-3 98%; salah terbanyak: RS09 Pecahan keramik dan cermin (2), EB02 Laptop dan komputer (2), B307 Cartridge tinta dan toner (1)
   E-Waste Vision / smartwatch: n=44, top-1 100%, top-3 100%; salah terbanyak: -
 
 Matriks tujuan (bagian uji, baris = tujuan benar, kolom = tujuan saran pertama):
 tujuan_saran_1  TPS  bank sampah  e-waste/B3  tanpa lokasi
 tujuan_benar                                              
-TPS              53           31           5             4
-bank sampah     247         1509         155            38
-e-waste/B3        7            6         335             0
+TPS              56           26           7             4
+bank sampah     248         1503         153            45
+e-waste/B3        7            4         337             0
 tanpa lokasi      2            0           0           105
 
-Waktu per foto (praproses + inferensi, CPU, n=3557): rata-rata 16.5 ms, median 15.8 ms, p95 19.7 ms
+Waktu per foto (praproses + inferensi, CPU, n=3557): rata-rata 17.6 ms, median 17.0 ms, p95 21.3 ms
