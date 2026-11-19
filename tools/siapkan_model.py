@@ -7,7 +7,8 @@ Menyiapkan model pengenalan foto EcoDrop (dijalankan sekali, bukan oleh aplikasi
      (model/teks.npy, satu baris per deskripsi, berurutan per jenis). Skor sebuah jenis adalah
      kemiripan tertinggi di antara deskripsinya.
   3. Mengekspor encoder gambar ke ONNX, lalu mengkuantisasi bobot MatMul ke int8 per kanal agar
-     berkasnya sekitar empat kali lebih kecil dan inferensi di CPU lebih cepat.
+     berkasnya sekitar empat kali lebih kecil dan inferensi di CPU lebih cepat. Rentang bobot
+     dipersempit (reduce_range) agar hasilnya sama di CPU dengan atau tanpa instruksi VNNI.
   4. Menulis model/konfigurasi.json (ukuran input, normalisasi, urutan kode, skala logit, URL dan
      SHA-256 berkas ONNX).
 
@@ -86,7 +87,7 @@ torch.onnx.export(EncoderGambar(model.visual), torch.randn(1, 3, ukuran, ukuran)
                   dynamic_axes={"pixel": {0: "n"}, "emb": {0: "n"}}, opset_version=17, dynamo=False)
 onnx_akhir = keluar / "visual.onnx"
 quantize_dynamic(str(fp32), str(onnx_akhir), weight_type=QuantType.QInt8, per_channel=True,
-                 op_types_to_quantize=["MatMul"])
+                 reduce_range=True, op_types_to_quantize=["MatMul"])
 fp32.unlink()
 
 sha = hashlib.sha256(onnx_akhir.read_bytes()).hexdigest()
