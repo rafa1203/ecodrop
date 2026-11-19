@@ -1,6 +1,10 @@
 numpy
 fastapi
 uvicorn
+python-multipart
+# pengenalan foto (encoder gambar CLIP dalam format ONNX)
+onnxruntime
+pillow
 # antarmuka Streamlit (app.py); versi dikunci agar tampilan tetap sama selama uji SUS
 streamlit==1.67.0
 folium==0.20.0

@@ -1,9 +1,11 @@
 """
-Antarmuka Streamlit EcoDrop (iterasi 2).
+Antarmuka Streamlit EcoDrop (iterasi 3).
 
 Aplikasi memakai MesinRekomendasi secara langsung (tanpa lewat HTTP):
-  1. Pengguna memilih jenis sampah (12 label Garbage Classification). Bila jenis sampah berasal dari
-     model klasifikasi, nilai confidence-nya bisa diatur; pilihan manual memakai confidence 1,0.
+  1. Pengguna menentukan jenis sampah dari 58 jenis EcoDrop: lewat foto (pengenalan zero-shot CLIP,
+     ecodrop/foto.py) atau dengan mencari sendiri. Bila peluang jenis teratas dari foto mencapai
+     ambang confidence, jenis itu langsung dipilih; bila belum, pengguna memilih dari tiga saran
+     atau mencari sendiri. Pilihan manual memakai confidence 1,0.
   2. Posisi pengguna diambil dari GPS peramban (Geolocation API, butuh HTTPS atau localhost),
      klik titik di peta, atau isian lintang/bujur.
   3. MesinRekomendasi menghitung jarak Haversine ke lokasi yang sesuai dan mengembalikan k terdekat.
@@ -15,21 +17,16 @@ Jalankan:
 import html
 
 import folium
+from PIL import Image, UnidentifiedImageError
 import streamlit as st
 from streamlit_folium import st_folium
 from streamlit_js_eval import get_geolocation
 
 from ecodrop.rekomendasi import AMBANG_CONFIDENCE, JENIS_LOKASI, NAMA_JENIS, TOP_K_MAKS, MesinRekomendasi
 
-# Titik tengah peta awal. Juga dipakai sebagai koordinat pengganti untuk label tanpa lokasi
-# (organik, pakaian, sepatu): status dan pesannya tidak bergantung pada posisi pengguna.
+# Titik tengah peta awal. Juga dipakai sebagai koordinat pengganti untuk jenis tanpa lokasi
+# (organik, pakaian, dan sejenisnya): status dan pesannya tidak bergantung pada posisi pengguna.
 PUSAT_JAKARTA = (-6.2088, 106.8456)
-
-IKON_LABEL = {
-    "cardboard": "📦", "paper": "📄", "metal": "🥫", "plastic": "🧴",
-    "brown-glass": "🍺", "green-glass": "🍾", "white-glass": "🫙",
-    "battery": "🔋", "trash": "🗑️", "biological": "🍌", "clothes": "👕", "shoes": "👟",
-}
 WARNA_PETA = {"bank_sampah": "#2e7d32", "dropbox_ewaste": "#6a1b9a",
               "collection_point_b3": "#c62828", "tps": "#5d4037"}
 WARNA_BADGE = {"bank_sampah": "green", "dropbox_ewaste": "violet",
@@ -48,6 +45,16 @@ PESAN_GALAT_GPS_LAIN = "Peramban ini tidak dapat memberikan lokasi."
 @st.cache_resource
 def muat_mesin():
     return MesinRekomendasi()
+
+
+@st.cache_resource(show_spinner="Menyiapkan model foto (hanya sekali)…")
+def muat_pengenal():
+    """Model foto dimuat saat pertama kali dibutuhkan. None bila gagal (mis. tidak ada internet)."""
+    try:
+        from ecodrop.foto import PengenalFoto
+        return PengenalFoto()
+    except Exception as e:  # aplikasi tetap bisa dipakai lewat pilihan manual
+        return e
 
 
 # ----------------------------------------------------------------------------- utilitas tampilan
@@ -112,6 +119,10 @@ def siapkan_state():
     ss.setdefault("gps_galat", None)
     ss.setdefault("klik_terakhir", None)     # klik peta terakhir yang sudah diproses
     ss.setdefault("konfirmasi_untuk", None)  # (label, confidence) yang sudah dikonfirmasi pengguna
+    ss.setdefault("jenis", None)             # kode jenis terpilih (nilai kotak pencarian)
+    ss.setdefault("foto_id", None)           # foto terakhir yang sudah dikenali
+    ss.setdefault("saran", [])               # saran dari foto: [{"kode", "peluang"}, ...]
+    ss.setdefault("peluang_foto", {})        # kode -> peluang dari foto terakhir
 
 
 def set_posisi(lat, lon, sumber, akurasi_m=None):
@@ -126,6 +137,46 @@ def minta_gps():
 
 def konfirmasi(label, confidence):
     st.session_state.konfirmasi_untuk = (label, confidence)
+
+
+def pilih_saran(kode):
+    st.session_state.jenis = kode
+    st.session_state.konfirmasi_untuk = (kode, round(st.session_state.peluang_foto.get(kode, 1.0), 4))
+
+
+def pilih_manual():
+    """Jenis yang dipilih sendiri lewat kotak pencarian dianggap sudah dikonfirmasi pengguna."""
+    kode = st.session_state.jenis
+    if kode:
+        st.session_state.konfirmasi_untuk = (kode, round(st.session_state.peluang_foto.get(kode, 1.0), 4))
+
+
+def kenali_foto(berkas):
+    """Kenali foto baru sekali saja; hasilnya disimpan di session state."""
+    ss = st.session_state
+    if berkas is None:
+        ss.foto_id, ss.saran, ss.peluang_foto = None, [], {}
+        return
+    if berkas.file_id == ss.foto_id:
+        return
+    pengenal = muat_pengenal()
+    if isinstance(pengenal, Exception):
+        st.warning("Fitur foto sedang tidak tersedia. Silakan cari jenis sampah secara manual.",
+                   icon=":material/no_photography:")
+        return
+    try:
+        gambar = Image.open(berkas)
+        gambar.load()
+    except (UnidentifiedImageError, OSError):
+        st.error("Berkas ini tidak dapat dibaca sebagai foto. Gunakan JPG, PNG, atau WEBP.")
+        return
+    with st.spinner("Mengenali foto…"):
+        saran = pengenal.kenali(gambar, k=3)
+    ss.foto_id, ss.saran = berkas.file_id, saran
+    ss.peluang_foto = {s["kode"]: s["peluang"] for s in saran}
+    # peluang teratas mencapai ambang: langsung dipilih; bila belum, pengguna memilih sendiri
+    ss.jenis = saran[0]["kode"] if saran[0]["peluang"] >= AMBANG_CONFIDENCE else None
+    ss.konfirmasi_untuk = None
 
 
 # ----------------------------------------------------------------------------- peta
@@ -192,20 +243,42 @@ def peta_hasil(pos, lokasi, radius_km):
 # ----------------------------------------------------------------------------- bagian halaman
 def bagian_jenis_sampah(mesin):
     st.subheader("1. Jenis sampah")
-    label = st.pills(
-        "Pilih jenis sampah", options=list(mesin.aturan),
-        format_func=lambda k: f"{IKON_LABEL.get(k, '')} {mesin.aturan[k]['nama_indonesia']}".strip(),
-        key="label",
+    ss = st.session_state
+    berkas = st.file_uploader("Foto sampahnya (opsional)", type=["jpg", "jpeg", "png", "webp"],
+                              help="Di ponsel, pilih kamera untuk memotret langsung. Foto hanya diproses "
+                                   "untuk mengenali jenis sampah dan tidak disimpan.")
+    kenali_foto(berkas)
+
+    if ss.saran:
+        k1, k2 = st.columns([1, 3], vertical_alignment="center")
+        k1.image(berkas, width="stretch")
+        teratas = ss.saran[0]["peluang"]
+        if teratas >= AMBANG_CONFIDENCE:
+            k2.markdown(f"Terdeteksi sebagai **{md(mesin.jenis[ss.saran[0]['kode']]['nama_indonesia'])}**. "
+                        "Kalau keliru, pilih saran lain atau cari sendiri di bawah.")
+        else:
+            k2.markdown("Model **belum yakin**. Pilih yang paling sesuai, atau cari sendiri di bawah.")
+        for s in ss.saran:
+            nama = mesin.jenis[s["kode"]]["nama_indonesia"]
+            persen = "<1" if s["peluang"] < 0.01 else angka_id(s["peluang"] * 100, 0)
+            k2.button(f"{nama} · {persen}%", key=f"saran_{s['kode']}",
+                      type="primary" if ss.jenis == s["kode"] else "secondary", width="stretch",
+                      on_click=pilih_saran, args=(s["kode"],))
+
+    kode = st.selectbox(
+        "Cari jenis sampah", options=list(mesin.jenis), key="jenis", index=None,
+        placeholder="Ketik, mis. botol, baterai, kardus, minyak…", on_change=pilih_manual,
+        format_func=lambda k: f"{mesin.jenis[k]['nama_indonesia']} — {mesin.jenis[k]['contoh']}",
     )
-    with st.expander("Dari model klasifikasi? Atur confidence", icon=":material/tune:"):
-        confidence = st.slider("Confidence model", 0.0, 1.0, 1.0, 0.01, format="%.2f", key="confidence")
-        st.caption(f"Biarkan 1,00 bila jenis sampah dipilih sendiri. Di bawah "
-                   f"{angka_id(AMBANG_CONFIDENCE, 2)} sistem meminta konfirmasi lebih dulu.")
-    if label:
-        jenis = mesin.aturan[label]["jenis_lokasi"]
-        st.caption(f"Disetor ke: **{nama_jenis_lokasi(jenis)}**" if jenis
-                   else "Tidak disetor ke lokasi tertentu — lihat saran di bawah.")
-    return label, confidence
+    if not kode:
+        return None, 1.0
+    info = mesin.jenis[kode]
+    st.caption(f"Disetor ke: **{nama_jenis_lokasi(info['jenis_lokasi'])}**" if info["jenis_lokasi"]
+               else "Tidak disetor ke lokasi tertentu — lihat saran di bawah.")
+    if info["perlu_dicek"]:
+        st.caption(":material/help: Penerimaan jenis ini berbeda-beda antarlokasi. Tanyakan dulu sebelum datang.")
+    confidence = ss.peluang_foto.get(kode, 1.0)
+    return kode, confidence
 
 
 def bagian_lokasi_pengguna():
@@ -300,7 +373,7 @@ def tampilkan_hasil(hasil, pos, radius_km):
         st.warning(hasil["pesan"], icon=":material/help:")
         st.button(f"Ya, ini {hasil['nama_indonesia'].lower()}", type="primary", width="stretch",
                   icon=":material/check:", on_click=konfirmasi, args=(hasil["label"], hasil["confidence"]))
-        st.caption("Bukan? Pilih jenis sampah yang benar di bagian 1.")
+        st.caption("Bukan? Pilih saran lain atau cari jenis sampah yang benar di bagian 1.")
         return
     if status == "tanpa_lokasi":
         st.info(hasil["pesan"], icon=":material/recycling:")
@@ -336,7 +409,10 @@ def bagian_tentang(mesin):
             "- Sumber data: e-Bank Sampah Jakarta, Portal E-Waste DLH DKI, dan layer TPS di Jakarta Satu "
             "(Dinas Lingkungan Hidup DKI Jakarta).\n"
             "- Jarak dihitung dengan rumus Haversine (R = 6.371 km).\n"
-            "- Jenis sampah mengikuti 12 kelas dataset Garbage Classification (Mohamed, 2021)."
+            f"- {len(mesin.jenis)} jenis sampah disusun dari Instruksi Gubernur DKI Jakarta Nomor 5 Tahun 2026 "
+            "dan Portal E-Waste DLH DKI.\n"
+            "- Foto dikenali secara *zero-shot* dengan model OpenCLIP ViT-B/32 (LAION-400M). Saran dari foto "
+            "bisa keliru, jadi periksa lagi sebelum memakai hasilnya."
         )
 
 
@@ -344,11 +420,11 @@ def bagian_tentang(mesin):
 def main(mesin):
     label, confidence = bagian_jenis_sampah(mesin)
     if not label:
-        st.info("Pilih jenis sampah untuk mulai.", icon=":material/touch_app:")
+        st.info("Foto sampahnya atau cari jenisnya untuk mulai.", icon=":material/touch_app:")
         return
 
     dikonfirmasi = st.session_state.konfirmasi_untuk == (label, round(confidence, 4))
-    butuh_lokasi = bool(mesin.aturan[label]["jenis_lokasi"])
+    butuh_lokasi = bool(mesin.jenis[label]["jenis_lokasi"])
 
     if not butuh_lokasi:
         st.subheader("2. Saran penanganan")

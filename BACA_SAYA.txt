@@ -4,26 +4,43 @@ MODUL HAVERSINE DAN API ECODROP
 Isi folder
 ----------
 ecodrop/haversine.py       Rumus Haversine (versi biasa dan versi vektor numpy)
-ecodrop/rekomendasi.py     Logika rekomendasi: label -> jenis lokasi -> lokasi terdekat
+ecodrop/rekomendasi.py     Logika rekomendasi: jenis sampah -> jenis lokasi -> lokasi terdekat
+ecodrop/foto.py            Pengenalan jenis sampah dari foto (zero-shot CLIP, ONNX Runtime)
 ecodrop/api.py             Endpoint FastAPI (bisa berdiri sendiri atau dipasang di aplikasi lain)
 app.py                     Antarmuka Streamlit (memakai MesinRekomendasi langsung, tanpa HTTP)
 .streamlit/config.toml     Tema warna antarmuka Streamlit
 data/lokasi_ecodrop.csv   3.127 lokasi di lima kota administrasi DKI Jakarta
                            (bank sampah, dropbox e-waste, collection point B3, TPS)
-data/aturan_label.csv      Pemetaan 12 label jenis sampah ke jenis lokasi
+data/jenis_sampah.csv      58 jenis sampah EcoDrop beserta contoh, tujuan, dan saran penanganan
+data/aturan_label.csv      Pemetaan 12 label umum (Garbage Classification) ke jenis lokasi
+model/                     Deskripsi teks per jenis, vektor teks, dan konfigurasi model foto
+tools/siapkan_model.py     Membuat isi folder model/ dari bobot OpenCLIP (sekali saja)
 tests/                     Pengujian otomatis (pytest)
 pengujian/                 Script pengujian untuk laporan dan hasilnya (folder hasil)
 
-Pemetaan label
---------------
-Label mengikuti 12 kelas dataset publik Garbage Classification (Mohamed, 2021), sehingga dapat berasal
-dari model klasifikasi citra apa pun yang dilatih dengan kelas tersebut, atau dipilih langsung oleh pengguna.
-cardboard, paper, metal, plastic, brown-glass, green-glass, white-glass  -> bank sampah
-battery                                                                  -> dropbox e-waste dan collection point B3
-trash                                                                    -> TPS
-biological, clothes, shoes   -> tanpa lokasi (diarahkan ke pengolahan di rumah, pakai ulang, atau donasi)
+Jenis sampah
+------------
+Jenis sampah dinyatakan dengan kode dari 58 jenis EcoDrop (data/jenis_sampah.csv), mis. AN05 botol plastik
+minuman, EK05 baterai kecil, OR01 sisa makanan. Pemetaannya:
+AN (anorganik: kertas, plastik, logam, kaca, kotak minuman)   -> bank sampah
+EK (e-waste kecil: HP, charger, kabel, baterai, power bank)    -> dropbox e-waste dan collection point B3
+EB (e-waste besar) dan B3 (lampu, aki, cat, pembasmi serangga) -> collection point B3
+RS (residu: popok, styrofoam, saset, dll.) dan LN02 (obat)     -> TPS
+OR (organik), TK (tekstil), LN01, LN03, LN04                   -> tanpa lokasi (hanya saran penanganan)
+Untuk kompatibilitas, 12 label umum Garbage Classification (plastic, paper, battery, trash, dll.) di
+data/aturan_label.csv juga diterima.
 Ambang confidence 0,6: di bawah itu sistem meminta pengguna mengonfirmasi jenis sampah lebih dulu.
-Aturan bisa diubah lewat data/aturan_label.csv tanpa menyentuh kode.
+Aturan bisa diubah lewat berkas CSV tanpa menyentuh kode.
+
+Pengenalan foto
+---------------
+Foto dikenali secara zero-shot dengan OpenCLIP ViT-B/32 yang dilatih pada LAION-400M. Tiap jenis
+diwakili beberapa deskripsi teks bahasa Inggris (model/prompt_jenis.csv). Skor jenis adalah kemiripan
+kosinus tertinggi antara foto dan deskripsi jenis itu; skor diubah menjadi peluang dengan softmax, lalu
+tiga jenis teratas ditampilkan. Bila peluang teratas >= 0,6, saran pertama langsung dipilih; bila belum,
+pengguna memilih sendiri. Pengguna tetap bisa mengganti jenisnya.
+Encoder gambar (ONNX int8, sekitar 96 MB) diunduh otomatis dari rilis GitHub model-v1 saat foto pertama
+dikenali, lalu dicek SHA-256-nya. Aplikasi tidak memerlukan PyTorch.
 
 Menjalankan
 -----------
@@ -61,8 +78,10 @@ Memasang di aplikasi lain berbasis FastAPI
 Endpoint
 --------
 GET  /ecodrop/kesehatan        Cek layanan dan jumlah data
-GET  /ecodrop/label            Daftar 12 label dan jenis lokasi tujuannya
-POST /ecodrop/rekomendasi      Rekomendasi dari hasil klasifikasi
+GET  /ecodrop/label            Daftar 12 label umum dan jenis lokasi tujuannya
+GET  /ecodrop/jenis            Daftar 58 jenis sampah EcoDrop
+POST /ecodrop/kenali-foto      Unggah foto (multipart, field "foto"), hasil tiga saran jenis + peluang
+POST /ecodrop/rekomendasi      Rekomendasi dari kode jenis atau label umum
 GET  /ecodrop/lokasi-terdekat  Cari langsung per jenis lokasi, mis.
                                ?latitude=-6.2088&longitude=106.8456&jenis_lokasi=bank_sampah&top_k=5
 
@@ -103,33 +122,39 @@ Contoh response (dipotong)
 Nilai status
     ok                 lokasi ditemukan
     perlu_konfirmasi   confidence < 0,6; tampilkan pilihan jenis sampah, lalu kirim ulang dengan dikonfirmasi = true
-    tanpa_lokasi       jenis sampah ini tidak disetor ke lokasi (organik, pakaian, sepatu)
+    tanpa_lokasi       jenis sampah ini tidak disetor ke lokasi (organik, tekstil, dan sejenisnya)
     tidak_ditemukan    tidak ada lokasi dalam radius_km yang diminta
 Masukan yang tidak valid (label tidak dikenal, koordinat di luar rentang, confidence > 1) dijawab HTTP 422.
 
 Alur di antarmuka pengguna
 --------------------------
-1. Pengguna memilih jenis sampah, atau label diperoleh dari model klasifikasi citra (label + confidence).
+1. Pengguna memotret sampah (POST /ecodrop/kenali-foto, tiga saran) atau mencari jenisnya sendiri.
 2. Antarmuka mengambil lokasi GPS pengguna dari browser, atau pengguna menentukannya di peta.
 3. Antarmuka memanggil POST /ecodrop/rekomendasi dengan label, confidence, latitude, longitude.
 4. Hasil ditampilkan sebagai daftar dan peta; tombol "Rute" membuka url_rute.
 
 Pengujian
 ---------
-pytest -q                              24 uji otomatis (6 uji unit Haversine + 18 skenario black-box)
+pytest -q                              32 uji otomatis (6 uji unit Haversine + 26 skenario black-box)
 python pengujian/jalankan_pengujian.py  menghasilkan file di pengujian/hasil:
     hasil_blackbox.csv             tabel skenario, hasil diharapkan, hasil aktual, kesimpulan
     ringkasan_pengujian.txt        ringkasan black-box, akurasi jarak, dan kecepatan
     grafik_akurasi_haversine.png   sebaran selisih jarak dan pengaruh arah
     akurasi_pasangan_jarak.csv     20.000 pasangan jarak Haversine vs geodesik
 
-Hasil (17 November 2026):
-- Black-box: 18 dari 18 skenario berhasil.
+python pengujian/uji_foto.py data_uji  akurasi pengenalan foto (cara menyiapkan data_uji ada di skripnya):
+    hasil_uji_foto.csv             saran per foto dan benar/salahnya
+    ringkasan_uji_foto.txt         akurasi top-1, top-3, tujuan, per label, dan waktu per foto
+
+Hasil (19 November 2026):
+- Black-box: 26 dari 26 skenario berhasil.
 - Akurasi jarak terhadap geodesik WGS84: MAE 7,43 m, MAPE 0,259%, selisih -0,12% s.d. +0,55%.
   Selisih bergantung arah: terbesar untuk arah utara-selatan karena Haversine menganggap Bumi bulat.
 - Lokasi terdekat pertama sama dengan acuan geodesik pada 99,92% kasus; bila berbeda,
   lokasi pilihan Haversine paling jauh hanya 23,94 m lebih jauh.
 - Waktu proses modul kurang dari 0,1 ms per permintaan; lewat endpoint API sekitar 3 ms.
+- Foto (bagian uji 2.497 foto): jenis benar ada di tiga saran pada 88,7% foto, saran pertama benar 68,3%,
+  tujuan penyetoran dari saran pertama benar 80,2%. Sekitar 16 ms per foto di CPU.
 
 Memperbarui data lokasi
 -----------------------
