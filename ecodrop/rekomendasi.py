@@ -2,15 +2,19 @@
 Logika rekomendasi lokasi penyetoran sampah EcoDrop.
 
 Alur:
-  1. Label jenis sampah mengikuti 12 kelas dataset publik Garbage Classification (Mohamed, 2021),
-     sehingga dapat berasal dari model klasifikasi citra mana pun yang dilatih dengan kelas tersebut
-     atau dipilih langsung oleh pengguna. Label dipetakan ke jenis lokasi memakai data/aturan_label.csv.
+  1. Jenis sampah dinyatakan dengan salah satu dari dua cara:
+     - kode jenis dari daftar 58 jenis sampah EcoDrop (data/jenis_sampah.csv), mis. "AN05" untuk botol
+       plastik minuman. Kode ini dipakai fitur pengenalan foto (ecodrop/foto.py) dan pilihan manual;
+     - label umum 12 kelas dataset Garbage Classification (Mohamed, 2021) di data/aturan_label.csv,
+       agar modul tetap bisa dipakai model klasifikasi citra yang dilatih dengan kelas tersebut.
+     Keduanya dipetakan ke jenis lokasi tujuan (bank sampah, dropbox e-waste, collection point B3, TPS).
   2. Bila confidence di bawah ambang dan pengguna belum mengonfirmasi, sistem meminta konfirmasi.
   3. Jarak dari lokasi pengguna ke semua lokasi yang sesuai dihitung dengan Haversine,
      lalu diurutkan dari yang terdekat.
 """
 
 import csv
+import re
 from pathlib import Path
 
 import numpy as np
@@ -27,18 +31,36 @@ NAMA_JENIS = {
     "collection_point_b3": "Collection point B3",
     "tps": "TPS",
 }
+TUJUAN_KALIMAT = {"bank_sampah": "bank sampah", "dropbox_ewaste": "dropbox e-waste",
+                  "collection_point_b3": "collection point B3", "tps": "TPS"}
 # kotak batas lima kota administrasi DKI Jakarta (tanpa Kepulauan Seribu), untuk memberi peringatan
 BATAS_DKI = {"lat_min": -6.40, "lat_max": -6.05, "lon_min": 106.65, "lon_max": 107.00}
 
 
+POLA_KODE = re.compile(r"^[A-Z]{2}\d{2}$|^B3\d{2}$")
+
+
 def normalisasi_label(label):
-    return str(label or "").strip().lower().replace("_", "-").replace(" ", "-")
+    teks = str(label or "").strip()
+    if POLA_KODE.match(teks.upper()):
+        return teks.upper()  # kode jenis, mis. "an05" -> "AN05"
+    return teks.lower().replace("_", "-").replace(" ", "-")
+
+
+def _pesan_jenis(r, jenis_lokasi):
+    saran = "" if str(r["pesan"]).strip() in ("", "-") else str(r["pesan"]).strip()
+    if not jenis_lokasi:
+        return saran
+    tujuan = " atau ".join(TUJUAN_KALIMAT[j] for j in jenis_lokasi)
+    kerja = "dibuang ke" if jenis_lokasi == ["tps"] else "disetor ke"
+    return f"{r['nama']} {kerja} {tujuan} terdekat. {saran}".strip()
 
 
 class MesinRekomendasi:
-    def __init__(self, path_lokasi=None, path_aturan=None):
+    def __init__(self, path_lokasi=None, path_aturan=None, path_jenis=None):
         path_lokasi = Path(path_lokasi or FOLDER_DATA / "lokasi_ecodrop.csv")
         path_aturan = Path(path_aturan or FOLDER_DATA / "aturan_label.csv")
+        path_jenis = Path(path_jenis or FOLDER_DATA / "jenis_sampah.csv")
 
         with open(path_lokasi, encoding="utf-8-sig", newline="") as f:
             self.lokasi = list(csv.DictReader(f))
@@ -53,13 +75,43 @@ class MesinRekomendasi:
                 r["jenis_lokasi"] = [j for j in r["jenis_lokasi"].split(";") if j]
                 self.aturan[normalisasi_label(r["label"])] = r
 
+        # 58 jenis sampah EcoDrop, dikunci dengan kodenya
+        with open(path_jenis, encoding="utf-8-sig", newline="") as f:
+            self.jenis = {}
+            for r in csv.DictReader(f):
+                jl = [j for j in r["jenis_lokasi"].split(";") if j]
+                tidak_dikenal = [j for j in jl if j not in JENIS_LOKASI]
+                if tidak_dikenal:
+                    raise ValueError(f"Jenis lokasi tidak dikenal di {r['kode']}: {tidak_dikenal}")
+                self.jenis[r["kode"]] = {
+                    "kode": r["kode"], "nama_indonesia": r["nama"], "contoh": r["contoh"],
+                    "kelompok": r["kelompok"], "jenis_lokasi": jl, "pesan": _pesan_jenis(r, jl),
+                    "perlu_dicek": r["perlu_dicek"] == "Ya",
+                }
+
     # ------------------------------------------------------------------
     def daftar_label(self):
+        """12 label umum (kelas Garbage Classification)."""
         return [
             {"label": k, "nama_indonesia": v["nama_indonesia"], "kelompok": v["kelompok"],
              "jenis_lokasi": v["jenis_lokasi"]}
             for k, v in self.aturan.items()
         ]
+
+    def daftar_jenis(self):
+        """58 jenis sampah EcoDrop beserta contoh dan jenis lokasi tujuannya."""
+        return [{"kode": v["kode"], "nama_indonesia": v["nama_indonesia"], "contoh": v["contoh"],
+                 "kelompok": v["kelompok"], "jenis_lokasi": v["jenis_lokasi"]} for v in self.jenis.values()]
+
+    def aturan_untuk(self, label):
+        """Aturan untuk kode jenis (mis. "AN05") atau label umum (mis. "plastic"). KeyError bila tidak dikenal."""
+        kunci = normalisasi_label(label)
+        if kunci in self.jenis:
+            return kunci, self.jenis[kunci]
+        if kunci in self.aturan:
+            return kunci, self.aturan[kunci]
+        raise KeyError(f"Label '{label}' tidak dikenal. Gunakan kode jenis sampah (lihat /ecodrop/jenis, "
+                       f"mis. AN05) atau salah satu label umum: {', '.join(self.aturan)}")
 
     @staticmethod
     def _cek_koordinat(lat, lon):
@@ -119,15 +171,12 @@ class MesinRekomendasi:
 
     # ------------------------------------------------------------------
     def rekomendasi(self, label, confidence, lat, lon, top_k=5, radius_km=None, dikonfirmasi=False):
-        """Rekomendasi lokasi berdasarkan label jenis sampah (hasil klasifikasi atau pilihan pengguna)."""
-        kunci = normalisasi_label(label)
-        if kunci not in self.aturan:
-            raise KeyError(f"Label '{label}' tidak dikenal. Label yang tersedia: {', '.join(self.aturan)}")
+        """Rekomendasi lokasi berdasarkan jenis sampah (kode jenis atau label umum), dari hasil
+        pengenalan foto atau pilihan pengguna."""
+        kunci, aturan = self.aturan_untuk(label)
         if not 0 <= confidence <= 1:
             raise ValueError("Confidence harus di antara 0 dan 1.")
         self._cek_koordinat(lat, lon)
-
-        aturan = self.aturan[kunci]
         hasil = {
             "label": kunci,
             "nama_indonesia": aturan["nama_indonesia"],
