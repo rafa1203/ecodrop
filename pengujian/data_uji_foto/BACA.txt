@@ -1,0 +1,7 @@
+Daftar foto uji untuk pengujian/uji_foto.py.
+
+daftar_semua.txt   3.557 foto: TrashNet 2.527, TrashIVL 550 (50 per subkelas), E-Waste Vision 480 (60 per kelas).
+daftar_dev.txt     1.060 foto bagian pengembangan (30%), dipakai untuk menyusun model/prompt_jenis.csv.
+                   Sisanya (2.497 foto) adalah bagian uji yang angkanya dipakai di laporan.
+
+Foto tidak disimpan di repositori. Cara menyiapkan folder data_uji ada di awal pengujian/uji_foto.py.
