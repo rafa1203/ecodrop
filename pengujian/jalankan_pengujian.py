@@ -1,7 +1,7 @@
 """
 Menjalankan seluruh pengujian EcoDrop dan menyimpan hasilnya untuk laporan.
 
-  1. Black-box  : 18 skenario endpoint API.
+  1. Black-box  : 26 skenario endpoint API (termasuk unggah foto).
   2. Akurasi    : jarak Haversine dibandingkan jarak geodesik elipsoid WGS84 (pyproj, metode Karney)
                   sebagai acuan, ditambah kecocokan urutan 5 lokasi terdekat.
   3. Kecepatan  : waktu proses per permintaan rekomendasi.
@@ -27,7 +27,7 @@ sys.path.insert(0, str(AKAR / "pengujian"))
 from ecodrop.api import app  # noqa: E402
 from ecodrop.haversine import haversine_km, haversine_km_vektor  # noqa: E402
 from ecodrop.rekomendasi import JENIS_LOKASI, MesinRekomendasi  # noqa: E402
-from skenario_blackbox import SKENARIO, periksa  # noqa: E402
+from skenario_blackbox import SKENARIO, kirim, periksa  # noqa: E402
 
 OUT = AKAR / "pengujian" / "hasil"
 OUT.mkdir(parents=True, exist_ok=True)
@@ -40,7 +40,7 @@ def uji_blackbox():
     klien = TestClient(app)
     baris = []
     for s in SKENARIO:
-        r = klien.post(s["url"], json=s["data"]) if s["metode"] == "POST" else klien.get(s["url"], params=s["data"])
+        r = kirim(klien, s)
         lulus, aktual = periksa(s, r)
         baris.append({"kode": s["kode"], "fitur": s["fitur"], "skenario": s["uraian"],
                       "hasil_diharapkan": s["harapan"], "hasil_aktual": aktual,

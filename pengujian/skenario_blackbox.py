@@ -3,9 +3,24 @@ Skenario pengujian black-box endpoint EcoDrop.
 Dipakai oleh tests/test_api.py (pytest) dan pengujian/uji_blackbox.py (tabel hasil untuk laporan).
 
 Lokasi uji: sekitar Jl. Menteng Raya, Jakarta Pusat (-6.2088, 106.8456).
+Skenario BB-25 dan BB-26 mengunggah berkas; isinya dibuat oleh berkas_unggahan().
 """
 
+import io
+
 LAT, LON = -6.2088, 106.8456
+
+
+def berkas_unggahan(jenis):
+    """Berkas untuk skenario unggah foto: 'gambar' = foto JPEG sintetis, 'teks' = berkas bukan gambar."""
+    if jenis == "teks":
+        return {"foto": ("catatan.txt", b"bukan gambar", "text/plain")}
+    from PIL import Image, ImageDraw
+    g = Image.new("RGB", (640, 480), (235, 235, 230))
+    ImageDraw.Draw(g).rectangle((260, 80, 380, 420), fill=(60, 150, 210))  # bentuk sederhana mirip botol
+    buf = io.BytesIO()
+    g.save(buf, format="JPEG")
+    return {"foto": ("botol.jpg", buf.getvalue(), "image/jpeg")}
 
 SKENARIO = [
     {
@@ -152,7 +167,80 @@ SKENARIO = [
         "harapan": "HTTP 200, 12 label sesuai kelas dataset Garbage Classification",
         "cek": {"http": 200, "jumlah_label": 12},
     },
+    {
+        "kode": "BB-19", "fitur": "Daftar jenis sampah",
+        "uraian": "GET /ecodrop/jenis",
+        "metode": "GET", "url": "/ecodrop/jenis",
+        "data": {},
+        "harapan": "HTTP 200, 58 jenis sampah EcoDrop",
+        "cek": {"http": 200, "jumlah_label": 58},
+    },
+    {
+        "kode": "BB-20", "fitur": "Rekomendasi dengan kode jenis",
+        "uraian": "Kode AN05 (botol plastik minuman), confidence 0,72",
+        "metode": "POST", "url": "/ecodrop/rekomendasi",
+        "data": {"label": "AN05", "confidence": 0.72, "latitude": LAT, "longitude": LON},
+        "harapan": "HTTP 200, status ok, 5 lokasi bank sampah urut dari yang terdekat",
+        "cek": {"http": 200, "status": "ok", "jumlah": 5, "jenis": ["bank_sampah"], "urut": True},
+    },
+    {
+        "kode": "BB-21", "fitur": "Rekomendasi dengan kode jenis",
+        "uraian": "Kode ek05 (baterai kecil) ditulis huruf kecil",
+        "metode": "POST", "url": "/ecodrop/rekomendasi",
+        "data": {"label": "ek05", "confidence": 0.9, "latitude": LAT, "longitude": LON},
+        "harapan": "HTTP 200, status ok, lokasi berupa dropbox e-waste atau collection point B3",
+        "cek": {"http": 200, "status": "ok", "jenis": ["dropbox_ewaste", "collection_point_b3"], "urut": True},
+    },
+    {
+        "kode": "BB-22", "fitur": "Rekomendasi dengan kode jenis",
+        "uraian": "Kode EB03 (kulkas, mesin cuci, AC)",
+        "metode": "POST", "url": "/ecodrop/rekomendasi",
+        "data": {"label": "EB03", "confidence": 0.9, "latitude": LAT, "longitude": LON},
+        "harapan": "HTTP 200, status ok, semua lokasi collection point B3 (dropbox hanya untuk barang kecil)",
+        "cek": {"http": 200, "status": "ok", "jenis": ["collection_point_b3"], "urut": True},
+    },
+    {
+        "kode": "BB-23", "fitur": "Rekomendasi dengan kode jenis",
+        "uraian": "Kode LN02 (obat kedaluwarsa)",
+        "metode": "POST", "url": "/ecodrop/rekomendasi",
+        "data": {"label": "LN02", "confidence": 0.9, "latitude": LAT, "longitude": LON},
+        "harapan": "HTTP 200, status ok, lokasi TPS, pesan menyebut apotek",
+        "cek": {"http": 200, "status": "ok", "jenis": ["tps"], "urut": True, "pesan_memuat": "apotek"},
+    },
+    {
+        "kode": "BB-24", "fitur": "Sampah tanpa lokasi",
+        "uraian": "Kode OR01 (sisa makanan)",
+        "metode": "POST", "url": "/ecodrop/rekomendasi",
+        "data": {"label": "OR01", "confidence": 0.9, "latitude": LAT, "longitude": LON},
+        "harapan": "HTTP 200, status tanpa_lokasi, ada saran pengolahan",
+        "cek": {"http": 200, "status": "tanpa_lokasi", "jumlah": 0, "pesan_memuat": "kompos"},
+    },
+    {
+        "kode": "BB-25", "fitur": "Pengenalan foto",
+        "uraian": "POST /ecodrop/kenali-foto dengan foto JPEG",
+        "metode": "UNGGAH", "url": "/ecodrop/kenali-foto", "berkas": "gambar",
+        "data": {},
+        "harapan": "HTTP 200, tiga saran jenis berurutan dari peluang terbesar, kode termasuk 58 jenis",
+        "cek": {"http": 200, "saran": 3},
+    },
+    {
+        "kode": "BB-26", "fitur": "Pengenalan foto",
+        "uraian": "POST /ecodrop/kenali-foto dengan berkas teks",
+        "metode": "UNGGAH", "url": "/ecodrop/kenali-foto", "berkas": "teks",
+        "data": {},
+        "harapan": "HTTP 422, berkas bukan gambar",
+        "cek": {"http": 422},
+    },
 ]
+
+
+def kirim(klien, s):
+    """Kirim permintaan sesuai skenario memakai TestClient FastAPI."""
+    if s["metode"] == "POST":
+        return klien.post(s["url"], json=s["data"])
+    if s["metode"] == "UNGGAH":
+        return klien.post(s["url"], files=berkas_unggahan(s["berkas"]))
+    return klien.get(s["url"], params=s["data"])
 
 
 def periksa(skenario, respons):
@@ -195,4 +283,14 @@ def periksa(skenario, respons):
     if "jumlah_label" in cek:
         catatan.append(f"{len(body)} label")
         lulus &= len(body) == cek["jumlah_label"]
+    if "pesan_memuat" in cek:
+        ada = cek["pesan_memuat"] in body.get("pesan", "")
+        catatan.append(f"pesan {'memuat' if ada else 'tidak memuat'} '{cek['pesan_memuat']}'")
+        lulus &= ada
+    if "saran" in cek:
+        saran = body.get("saran", [])
+        peluang = [x["peluang"] for x in saran]
+        catatan.append(f"{len(saran)} saran: " + ", ".join(f"{x['kode']} {x['peluang']:.2f}" for x in saran))
+        lulus &= len(saran) == cek["saran"] and peluang == sorted(peluang, reverse=True)
+        lulus &= all(len(x["kode"]) == 4 and x["jenis_lokasi"] is not None for x in saran)
     return lulus, "; ".join(catatan)
