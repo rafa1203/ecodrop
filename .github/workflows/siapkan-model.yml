@@ -20,7 +20,7 @@ jobs:
 
       - name: Pasang pustaka
         run: |
-          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install torch --index-url https://download.pytorch.org/whl/cpu torchvision
           pip install open_clip_torch==4.2.2 onnx==1.23.2 onnxruntime==1.32.0 onnxscript pandas pillow
 
       - name: Ekspor dan kuantisasi model
