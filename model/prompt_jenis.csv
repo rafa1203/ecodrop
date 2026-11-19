@@ -1,0 +1,59 @@
+kode,prompt_en
+AN01,a cardboard box|a corrugated cardboard shipping box|flattened cardboard
+AN02,sheets of paper|crumpled paper|a paper envelope|printed office paper|an old book|a notebook
+AN03,a newspaper|a magazine|a paper brochure
+AN04,a paperboard box|a shoe box|a toothpaste box|a thin cardboard packaging box
+AN05,a plastic water bottle|a PET plastic drink bottle|a plastic bottle of bottled tea
+AN06,a plastic drinking cup|a plastic cup of water|a plastic iced coffee cup
+AN07,a large plastic water gallon|a plastic jerrycan
+AN08,a plastic shampoo bottle|a liquid soap bottle|a liquid detergent bottle
+AN09,a hard plastic container|a plastic lunch box|a plastic bucket|a plastic basin|a plastic water dipper
+AN10,a plastic shopping bag|a plastic bag
+AN11,clear plastic packaging|a clear plastic clamshell|a plastic egg carton|plastic wrapping film
+AN12,an aluminum drink can|a soda can
+AN13,a steel food can|a sardine can|a powdered milk can|a biscuit tin
+AN14,scrap iron and metal|rusty nails|an old metal cooking pot|corrugated metal roofing sheet
+AN15,an old aluminum pot|copper wire scrap|a brass water faucet
+AN16,a glass bottle|a glass syrup bottle|a glass soy sauce bottle|a glass drink bottle
+AN17,a glass jar|a glass jam jar with a metal lid|a glass food container|a drinking glass
+AN18,a beverage carton|a UHT milk carton|a juice box carton
+EK01,a mobile phone|a smartphone|a tablet computer
+EK02,a phone charger|a laptop power adapter
+EK03,an electrical cable|a USB cable|an extension cord
+EK04,earphones|a headset|a small speaker
+EK05,small batteries|AA and AAA batteries|a watch battery|a phone battery
+EK06,a power bank
+EK07,a small electronic device|a remote control|a computer mouse|a computer keyboard|a calculator|a USB flash drive|a digital camera|a smartwatch
+EB01,a television|a computer monitor
+EB02,a laptop computer|a desktop computer tower|a printer
+EB03,a refrigerator|a washing machine|an air conditioner|a water dispenser
+EB04,a household electrical appliance|an electric iron|an electric fan|a rice cooker|a blender|a microwave oven
+B301,a light bulb|a fluorescent tube lamp|an LED light bulb
+B302,a vehicle battery|a motorcycle battery|a car battery
+B303,an open paint can with paint residue|a can of paint thinner|a tube of glue
+B304,an insecticide spray can|a mosquito repellent spray|a pesticide bottle|rat poison
+B305,a bleach bottle|a floor cleaner bottle|a toilet bowl cleaner bottle
+B306,an air freshener|an aerosol spray can
+B307,a printer ink cartridge|a toner cartridge
+B308,a mercury thermometer
+B309,used motor oil|a motor oil bottle|an engine oil container
+RS01,a used disposable diaper|an adult diaper
+RS02,a sanitary pad|a panty liner
+RS03,a disposable face mask|a medical mask|a torn cloth mask
+RS04,used crumpled tissues|dirty used tissue paper|oily food wrapping paper
+RS05,styrofoam|a styrofoam food container|styrofoam packaging foam
+RS06,a shiny foil sachet|an instant noodle wrapper|a coffee sachet|a metallized plastic snack bag
+RS07,plastic straws|plastic spoons and forks|disposable plastic cutlery
+RS08,cigarette butts
+RS09,a broken ceramic plate|a broken mirror|ceramic shards
+LN02,expired medicine|medicine tablets|medicine capsules|a bottle of cough syrup
+OR01,food leftovers|leftover rice and side dishes|spoiled food
+OR02,fruit peels and vegetable scraps|a banana peel|orange peels|vegetable trimmings
+OR03,dry leaves|twigs and branches|grass clippings
+OR04,used coffee grounds|used tea bags
+OR05,eggshells
+TK01,old clothes|a shirt|trousers|bed sheets|fabric scraps
+TK02,old shoes|sandals|an old bag
+LN01,used cooking oil|used frying oil in a bottle
+LN03,construction rubble|broken bricks|broken concrete|broken floor tiles
+LN04,old furniture|a wardrobe|a sofa|a mattress
