@@ -140,5 +140,5 @@
  ],
  "berkas_onnx": "visual.onnx",
  "url_onnx": "https://github.com/rafa1203/ecodrop/releases/download/model-v1/visual.onnx",
- "sha256_onnx": "106c9c815ea64ebb4d0af2f8276b4eb80d413b2ce8a96fba4a59d971b0622ee7"
+ "sha256_onnx": "e67202de096378bb8cbc38f4240520b861744a1eadb56358209516d38436581b"
 }
