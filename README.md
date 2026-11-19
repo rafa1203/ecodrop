@@ -31,5 +31,5 @@ Tahun 2026 dan Portal E-Waste DLH DKI.
 Foto dikenali secara *zero-shot* dengan OpenCLIP ViT-B/32 (LAION-400M): tiap jenis sampah diwakili
 beberapa deskripsi teks (`model/prompt_jenis.csv`), dan aplikasi menampilkan tiga jenis yang paling mirip
 untuk dipilih pengguna. Hasil uji pada 2.497 foto (TrashNet, TrashIVL, E-Waste Vision): jenis benar ada
-di tiga saran pada 88,7% foto, dan tujuan penyetoran dari saran pertama benar pada 80,2% foto
+di tiga saran pada 87,8% foto, dan tujuan penyetoran dari saran pertama benar pada 80,1% foto
 (`pengujian/hasil/ringkasan_uji_foto.txt`).

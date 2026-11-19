@@ -153,8 +153,8 @@ Hasil (19 November 2026):
 - Lokasi terdekat pertama sama dengan acuan geodesik pada 99,92% kasus; bila berbeda,
   lokasi pilihan Haversine paling jauh hanya 23,94 m lebih jauh.
 - Waktu proses modul kurang dari 0,1 ms per permintaan; lewat endpoint API sekitar 3 ms.
-- Foto (bagian uji 2.497 foto): jenis benar ada di tiga saran pada 88,7% foto, saran pertama benar 68,3%,
-  tujuan penyetoran dari saran pertama benar 80,2%. Sekitar 16 ms per foto di CPU.
+- Foto (bagian uji 2.497 foto): jenis benar ada di tiga saran pada 87,8% foto, saran pertama benar 68,6%,
+  tujuan penyetoran dari saran pertama benar 80,1%. Sekitar 17 ms per foto di CPU.
 
 Memperbarui data lokasi
 -----------------------

@@ -59,11 +59,12 @@ Gunakan bahasa Indonesia untuk antarmuka, komentar kode, dan penjelasan.
 Jangan mengubah isi `data/` dan logika `ecodrop/` tanpa alasan; hasil pengujian di laporan bergantung
 padanya. Jika logika diubah, jalankan ulang `pytest` dan skrip pengujian.
 
-## Hasil pengujian foto (bagian uji, 2.497 foto, ONNX int8)
+## Hasil pengujian foto (bagian uji, 2.497 foto, ONNX int8 reduce_range)
 
-TrashNet (tingkat bahan): top-1 64,6%, top-3 87,8%, tujuan 75,9%. TrashIVL (tingkat jenis): top-1 70,0%,
-top-3 87,7%, tujuan 85,1%. E-Waste Vision: top-1 85,6%, top-3 94,8%, tujuan 96,3%. Gabungan: top-1 68,3%,
-top-3 88,7%, tujuan 80,2%. Sekitar 16 ms per foto di CPU; RAM proses sekitar 260 MB dengan model.
+TrashNet (tingkat bahan): top-1 64,6%, top-3 86,5%, tujuan 75,8%. TrashIVL (tingkat jenis): top-1 71,0%,
+top-3 86,7%, tujuan 85,1%. E-Waste Vision: top-1 86,8%, top-3 95,7%, tujuan 96,8%. Gabungan: top-1 68,6%,
+top-3 87,8%, tujuan 80,1%. Sekitar 17 ms per foto di CPU; RAM proses sekitar 260 MB dengan model.
+Kuantisasi int8 memakai reduce_range karena tanpa itu hasil di CPU tanpa VNNI (mis. server Streamlit) berbeda.
 Perbandingan arsitektur (bagian pengembangan, fp32): ViT-L/14 lebih akurat (TrashNet top-1 72,5% vs 66,4%)
 tetapi 3,5 kali lebih besar dan sekitar 12 kali lebih lambat, jadi aplikasi memakai ViT-B/32.
 
