@@ -17,3 +17,11 @@ BB-15,Lokasi di luar Jakarta,"Pengguna di Kota Bogor (-6.5950, 106.8167), label 
 BB-16,Pencarian manual,"GET lokasi-terdekat jenis tps, top_k 5","HTTP 200, 5 TPS urut dari yang terdekat","HTTP 200; 5 lokasi; jenis tps; jarak 0.07-0.42 km, urut",Berhasil
 BB-17,Pencarian manual,GET lokasi-terdekat dengan jenis tidak valid ('pasar'),HTTP 422,HTTP 422,Berhasil
 BB-18,Daftar label,GET /ecodrop/label,"HTTP 200, 12 label sesuai kelas dataset Garbage Classification",HTTP 200; 12 label,Berhasil
+BB-19,Daftar jenis sampah,GET /ecodrop/jenis,"HTTP 200, 58 jenis sampah EcoDrop",HTTP 200; 58 label,Berhasil
+BB-20,Rekomendasi dengan kode jenis,"Kode AN05 (botol plastik minuman), confidence 0,72","HTTP 200, status ok, 5 lokasi bank sampah urut dari yang terdekat","HTTP 200; status ok; 5 lokasi; jenis bank_sampah; jarak 0.19-0.36 km, urut",Berhasil
+BB-21,Rekomendasi dengan kode jenis,Kode ek05 (baterai kecil) ditulis huruf kecil,"HTTP 200, status ok, lokasi berupa dropbox e-waste atau collection point B3","HTTP 200; status ok; jenis collection_point_b3, dropbox_ewaste; jarak 1.01-1.55 km, urut",Berhasil
+BB-22,Rekomendasi dengan kode jenis,"Kode EB03 (kulkas, mesin cuci, AC)","HTTP 200, status ok, semua lokasi collection point B3 (dropbox hanya untuk barang kecil)","HTTP 200; status ok; jenis collection_point_b3; jarak 1.55-3.22 km, urut",Berhasil
+BB-23,Rekomendasi dengan kode jenis,Kode LN02 (obat kedaluwarsa),"HTTP 200, status ok, lokasi TPS, pesan menyebut apotek","HTTP 200; status ok; jenis tps; jarak 0.07-0.42 km, urut; pesan memuat 'apotek'",Berhasil
+BB-24,Sampah tanpa lokasi,Kode OR01 (sisa makanan),"HTTP 200, status tanpa_lokasi, ada saran pengolahan",HTTP 200; status tanpa_lokasi; 0 lokasi; pesan memuat 'kompos',Berhasil
+BB-25,Pengenalan foto,POST /ecodrop/kenali-foto dengan foto JPEG,"HTTP 200, tiga saran jenis berurutan dari peluang terbesar, kode termasuk 58 jenis","HTTP 200; 3 saran: B303 0.36, AN04 0.30, AN02 0.07",Berhasil
+BB-26,Pengenalan foto,POST /ecodrop/kenali-foto dengan berkas teks,"HTTP 422, berkas bukan gambar",HTTP 422,Berhasil

@@ -1,7 +1,7 @@
 RINGKASAN PENGUJIAN ECODROP
 
 1. PENGUJIAN BLACK-BOX
-   Skenario: 18, berhasil: 18, gagal: 0  (rincian: hasil_blackbox.csv)
+   Skenario: 26, berhasil: 26, gagal: 0  (rincian: hasil_blackbox.csv)
 
 2. PENGUJIAN AKURASI JARAK
    Acuan: jarak geodesik elipsoid WGS84 (pyproj Geod, metode Karney)
@@ -29,6 +29,6 @@ dropbox_ewaste            99.7               98.7              95.8
 tps                      100.0               98.5              96.2
 
 3. PENGUJIAN KECEPATAN
-   Modul rekomendasi (numpy) (n=1000): rata-rata 0.082 ms, median 0.101 ms, p95 0.141 ms, maks 0.510 ms
-   Endpoint API lengkap (FastAPI, in-process) (n=300): rata-rata 2.929 ms, median 2.958 ms, p95 3.539 ms, maks 5.130 ms
-   Pembanding: perulangan Python ke 3.127 lokasi (n=100): rata-rata 2.602 ms, median 2.227 ms, p95 4.600 ms, maks 5.649 ms
+   Modul rekomendasi (numpy) (n=1000): rata-rata 0.058 ms, median 0.072 ms, p95 0.096 ms, maks 0.459 ms
+   Endpoint API lengkap (FastAPI, in-process) (n=300): rata-rata 3.110 ms, median 3.062 ms, p95 3.769 ms, maks 5.767 ms
+   Pembanding: perulangan Python ke 3.127 lokasi (n=100): rata-rata 1.573 ms, median 1.573 ms, p95 1.623 ms, maks 1.778 ms
