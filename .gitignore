@@ -2,3 +2,7 @@ __pycache__/
 .pytest_cache/
 .venv/
 *.pyc
+# berkas model besar: diunduh dari rilis GitHub atau dibuat tools/siapkan_model.py
+model/*.onnx
+model/*.pt
+model/*.unduh
